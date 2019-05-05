@@ -1,4 +1,4 @@
-﻿namespace DBDiffer.Json.Lcs
+﻿namespace DBDiffer.Helpers.Lcs
 {
     public struct MatrixElement
     {

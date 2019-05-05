@@ -2,14 +2,15 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
-using DBDiffer.Json;
+using DBDiffer.DiffGenerators;
 
 namespace DBDiffer
 {
     public class DBComparer
     {
+        public bool UseReflection { get; set; } = true;
+
         private readonly DBInfo PreviousDB;
         private readonly DBInfo CurrentDB;
 
@@ -35,12 +36,16 @@ namespace DBDiffer
 
         private IDictionary<int, List<Diff>> ObjectDiff(IEnumerable<int> keys)
         {
-            var differ = new JsonDiffGenerator(PreviousDB, CurrentDB);
+            var differ = GeneratorFactory();
+            bool useHashCode = !UseReflection && differ.HasMatchingFields;
+
 
             var resultset = new Dictionary<int, List<Diff>>(keys.Count());
             Parallel.ForEach(keys, key =>
             {
-                if (differ.HasMatchingFields && PreviousDB.GetRecordHash(key) == CurrentDB.GetRecordHash(key))
+                // shortcut for Json comparison to reduce the amount of iterations required
+                // the difference is negligable with reflection
+                if (useHashCode && PreviousDB.GetRecordHash(key) == CurrentDB.GetRecordHash(key))
                     return;
 
                 var diffs = differ.Generate(PreviousDB.Storage[key], CurrentDB.Storage[key]);
@@ -52,6 +57,14 @@ namespace DBDiffer
             });
 
             return resultset;
+        }
+
+        private IDiffGenerator GeneratorFactory()
+        {
+            if (UseReflection)
+                return (IDiffGenerator)Activator.CreateInstance(typeof(ReflectionDiffGenerator), PreviousDB, CurrentDB);
+
+            return (IDiffGenerator)Activator.CreateInstance(typeof(JsonDiffGenerator), PreviousDB, CurrentDB);
         }
     }
 }

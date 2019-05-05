@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace DBDiffer.Json.Lcs
+namespace DBDiffer.Helpers.Lcs
 {
     internal static class LcsComparer
     {

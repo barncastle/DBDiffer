@@ -1,31 +1,31 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using DBDiffer.Json.Lcs;
+using DBDiffer.Helpers.Lcs;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace DBDiffer.Json
+namespace DBDiffer.DiffGenerators
 {
-    internal class JsonDiffGenerator
+    internal class JsonDiffGenerator : IDiffGenerator
     {
         public bool UseLCSArrayMatching { get; set; } = false;
-        public bool HasMatchingFields => fieldMap.AddedFields.Length + fieldMap.RemovedFields.Length == 0;
+        public bool HasMatchingFields => _fieldMap.AddedFields.Length + _fieldMap.RemovedFields.Length == 0;
 
-        private readonly FieldMap fieldMap;
+        private readonly FieldMap _fieldMap;
         
 
         public JsonDiffGenerator(DBInfo prevDB, DBInfo curDB)
         {
             var intersection = prevDB.Fields.Keys.Intersect(curDB.Fields.Keys);
 
-            fieldMap = new FieldMap()
+            _fieldMap = new FieldMap()
             {
                 CommonFields = intersection.ToArray(),
                 AddedFields = curDB.Fields.Keys.Except(intersection).ToArray(),
                 RemovedFields = prevDB.Fields.Keys.Except(intersection).ToArray(),
             };
-            fieldMap.Count = fieldMap.CommonFields.Length + fieldMap.AddedFields.Length + fieldMap.RemovedFields.Length;
+            _fieldMap.Count = _fieldMap.CommonFields.Length + _fieldMap.AddedFields.Length + _fieldMap.RemovedFields.Length;
         }
 
 
@@ -45,13 +45,13 @@ namespace DBDiffer.Json
             var otoken = (JObject)JToken.FromObject(a);
             var ntoken = (JObject)JToken.FromObject(b);
 
-            var diffs = new List<Diff>(fieldMap.Count);
+            var diffs = new List<Diff>(_fieldMap.Count);
 
-            foreach (var prop in fieldMap.CommonFields)
+            foreach (var prop in _fieldMap.CommonFields)
                 AppendChanges(otoken[prop], ntoken[prop], prop, diffs);
-            foreach (var prop in fieldMap.AddedFields)
+            foreach (var prop in _fieldMap.AddedFields)
                 diffs.Add(new Diff(DiffOperation.Add, prop, ntoken[prop]));
-            foreach (var prop in fieldMap.RemovedFields)
+            foreach (var prop in _fieldMap.RemovedFields)
                 diffs.Add(new Diff(DiffOperation.Remove, prop, otoken[prop]));
 
             return diffs;
@@ -148,13 +148,5 @@ namespace DBDiffer.Json
             });
         }
 
-
-        private class FieldMap
-        {
-            public string[] CommonFields;
-            public string[] AddedFields;
-            public string[] RemovedFields;
-            public int Count;
-        }
     }
 }
