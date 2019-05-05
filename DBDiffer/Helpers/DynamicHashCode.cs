@@ -7,18 +7,18 @@ namespace DBDiffer.Helpers
 {
     internal class DynamicHashCode
     {
-        private readonly Delegate _hashFunc;
         private readonly Type _type;
-        private readonly FieldInfo[] _fields;
+        private readonly Delegate _hashFunc;
 
         public DynamicHashCode(Type type)
         {
             _type = type;
-            _fields = type.GetFields();
             _hashFunc = BuildDelegate().Compile();
         }
 
-        public int GetHashCode(object o) =>(int)_hashFunc.DynamicInvoke(o);
+
+        public int GetHashCode(object o) => (int)_hashFunc.DynamicInvoke(o);
+
 
         private LambdaExpression BuildDelegate()
         {
@@ -26,7 +26,7 @@ namespace DBDiffer.Helpers
 
             var arg = Expression.Parameter(_type);
 
-            var body = _fields.Select<FieldInfo, Expression>(x =>
+            var body = _type.GetFields().Select<FieldInfo, Expression>(x =>
             {
                 if (x.FieldType.IsArray)
                 {
@@ -39,7 +39,10 @@ namespace DBDiffer.Helpers
                     return Expression.Call(toString, "GetHashCode", Type.EmptyTypes);
                 }
             })
-            .Aggregate((x, y) => Expression.ExclusiveOr(Expression.Multiply(x, Expression.Constant(16777619)), y));
+            .Aggregate((x, y) =>
+            {
+                return Expression.ExclusiveOr(Expression.Multiply(x, Expression.Constant(16777619)), y);
+            });
 
             var prime = Expression.ExclusiveOr(Expression.Constant(int.MaxValue), body);
 
