@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 
 namespace DBDiffer.DiffGenerators
 {
@@ -63,7 +62,7 @@ namespace DBDiffer.DiffGenerators
             {
                 AppendArrayChanges(a, b, path, diffs);
             }
-            else if(isArrayA != isArrayB)
+            else if (isArrayA != isArrayB)
             {
                 throw new NotImplementedException("Field changed to/from array");
             }
@@ -105,6 +104,6 @@ namespace DBDiffer.DiffGenerators
                 for (int i = minLen; i < a2.Length; i++)
                     diffs.Add(new Diff(DiffOperation.Add, $"{path}[{i}]", a2.GetValue(i).ToString()));
         }
- 
+
     }
 }

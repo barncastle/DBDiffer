@@ -13,7 +13,7 @@ namespace DBDiffer.DiffGenerators
         public bool HasMatchingFields => _fieldMap.AddedFields.Length + _fieldMap.RemovedFields.Length == 0;
 
         private readonly FieldMap _fieldMap;
-        
+
 
         public JsonDiffGenerator(DBInfo prevDB, DBInfo curDB)
         {
@@ -80,7 +80,7 @@ namespace DBDiffer.DiffGenerators
             var a1hash = a1.Select(x => x.ToString(Formatting.None)).ToArray();
             var a2hash = a2.Select(x => x.ToString(Formatting.None)).ToArray();
 
-            if(!UseLCSArrayMatching)
+            if (!UseLCSArrayMatching)
             {
                 // basic oridinal comparison
                 OrdinalCompare(a1hash, a2hash, path, diffs);
