@@ -17,15 +17,7 @@ namespace DBDiffer.DiffGenerators
 
         public JsonDiffGenerator(DBInfo prevDB, DBInfo curDB)
         {
-            var intersection = prevDB.Fields.Keys.Intersect(curDB.Fields.Keys);
-
-            _fieldMap = new FieldMap()
-            {
-                CommonFields = intersection.ToArray(),
-                AddedFields = curDB.Fields.Keys.Except(intersection).ToArray(),
-                RemovedFields = prevDB.Fields.Keys.Except(intersection).ToArray(),
-            };
-            _fieldMap.Count = _fieldMap.CommonFields.Length + _fieldMap.AddedFields.Length + _fieldMap.RemovedFields.Length;
+            _fieldMap = new FieldMap(prevDB.Fields.Keys, curDB.Fields.Keys);
         }
 
 
