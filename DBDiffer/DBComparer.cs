@@ -40,6 +40,9 @@ namespace DBDiffer
             var resultset = new Dictionary<int, List<Diff>>(keys.Count());
             Parallel.ForEach(keys, key =>
             {
+                if (PreviousDB.GetRecordHash(key) == CurrentDB.GetRecordHash(key))
+                    return;
+
                 var diffs = differ.Generate(PreviousDB.Storage[key], CurrentDB.Storage[key]);
                 if (diffs.Count == 0)
                     return;
