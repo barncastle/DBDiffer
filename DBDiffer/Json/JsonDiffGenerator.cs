@@ -11,6 +11,8 @@ namespace DBDiffer.Json
     {
         private readonly FieldMap fieldMap;
 
+        public bool HasMatchingFields => fieldMap.AddedFields.Length + fieldMap.RemovedFields.Length == 0;
+
         public JsonDiffGenerator(DBInfo prevDB, DBInfo curDB)
         {
             var intersection = prevDB.Fields.Keys.Intersect(curDB.Fields.Keys);
@@ -31,13 +33,13 @@ namespace DBDiffer.Json
             if (b == null)
                 throw new ArgumentNullException(nameof(b));
 
-            return GetChanges(a, b, "");
+            return GetChanges(a, b);
         }
 
-        private List<Diff> GetChanges(object a, object b, string path)
+        private List<Diff> GetChanges(object a, object b)
         {
-            var otoken = JToken.FromObject(a) as JObject;
-            var ntoken = JToken.FromObject(b) as JObject;
+            var otoken = (JObject)JToken.FromObject(a);
+            var ntoken = (JObject)JToken.FromObject(b);
 
             var diffs = new List<Diff>(fieldMap.Count);
 
@@ -85,14 +87,14 @@ namespace DBDiffer.Json
 
                 if (lcsOperation == LcsOperation.Remove)
                 {
-                    var lastDiff = diffs.LastOrDefault();
+                    var lastDiff = diffs.Count > 0 ? diffs[diffs.Count - 1] : null;
                     var pathToPreviousIndex = $"{path}[{j + offset - 1}]";
 
                     if (lastDiff != null && lastDiff.Operation == DiffOperation.Add && lastDiff.Property == pathToPreviousIndex)
                     {
                         // Coalesce adjacent remove + add into replace
                         lastDiff.Operation = DiffOperation.Replace;
-                        lastDiff.PreviousValue = (a1[j + offset - 1] as JValue)?.Value;
+                        lastDiff.PreviousValue = ((JValue)a1[j + offset - 1]).Value;
                     }
                     else
                     {
@@ -116,7 +118,7 @@ namespace DBDiffer.Json
         private void AppendValueChanges(JToken a, JValue b, string path, List<Diff> diffs)
         {
             if (a.Type == JTokenType.Object || !((JValue)a).Equals(b))
-                diffs.Add(new Diff(DiffOperation.Replace, path, b.Value, (a as JValue)?.Value));
+                diffs.Add(new Diff(DiffOperation.Replace, path, b.Value, ((JValue)a).Value));
         }
 
         private class FieldMap

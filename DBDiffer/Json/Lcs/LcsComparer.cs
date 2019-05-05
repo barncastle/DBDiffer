@@ -72,9 +72,11 @@ namespace DBDiffer.Json.Lcs
         {
             var l = Math.Min(a.Length, b.Length);
 
-            var i = 0;
-            while (i < l && a[i] == b[i])
-                i++;
+            int i = 0;
+            for (; i < l; i++)
+                if (a[i] != b[i])
+                    return i;
+
             return i;
         }
 
@@ -84,9 +86,11 @@ namespace DBDiffer.Json.Lcs
             var bl = b.Length - 1;
             var l = Math.Min(al, bl);
 
-            var i = 0;
-            while (i < l && a[al - i] == b[bl - i])
-                i++;
+            int i = 0;
+            for (; i < l; i++)
+                if (a[al - i] != b[bl - i])
+                    return i;
+
             return i;
         }
 
