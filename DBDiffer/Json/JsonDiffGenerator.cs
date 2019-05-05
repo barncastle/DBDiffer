@@ -9,9 +9,11 @@ namespace DBDiffer.Json
 {
     internal class JsonDiffGenerator
     {
-        private readonly FieldMap fieldMap;
-
+        public bool UseLCSArrayMatching { get; set; } = false;
         public bool HasMatchingFields => fieldMap.AddedFields.Length + fieldMap.RemovedFields.Length == 0;
+
+        private readonly FieldMap fieldMap;
+        
 
         public JsonDiffGenerator(DBInfo prevDB, DBInfo curDB)
         {
@@ -26,6 +28,7 @@ namespace DBDiffer.Json
             fieldMap.Count = fieldMap.CommonFields.Length + fieldMap.AddedFields.Length + fieldMap.RemovedFields.Length;
         }
 
+
         public List<Diff> Generate(object a, object b)
         {
             if (a == null)
@@ -35,6 +38,7 @@ namespace DBDiffer.Json
 
             return GetChanges(a, b);
         }
+
 
         private List<Diff> GetChanges(object a, object b)
         {
@@ -59,9 +63,10 @@ namespace DBDiffer.Json
             {
                 AppendArrayChanges((JArray)a, (JArray)b, path, diffs);
             }
-            else if (a is JValue && b is JValue)
+            else if (a is JValue aval && b is JValue bval)
             {
-                AppendValueChanges((JValue)a, (JValue)b, path, diffs);
+                if (aval.Type == JTokenType.Object || !aval.Equals(bval))
+                    diffs.Add(new Diff(DiffOperation.Replace, path, bval.Value, aval.Value));
             }
             else
             {
@@ -71,11 +76,39 @@ namespace DBDiffer.Json
 
         private void AppendArrayChanges(JArray a1, JArray a2, string path, List<Diff> diffs)
         {
+            // normalise the array's tokens
             var a1hash = a1.Select(x => x.ToString(Formatting.None)).ToArray();
             var a2hash = a2.Select(x => x.ToString(Formatting.None)).ToArray();
-            var lcsComparisonResult = LcsComparer.Compare(a1hash, a2hash);
 
-            LcsToJson(a1, a2, path, diffs, lcsComparisonResult);
+            if(!UseLCSArrayMatching)
+            {
+                // basic oridinal comparison
+                OrdinalCompare(a1hash, a2hash, path, diffs);
+            }
+            else
+            {
+                // longest common sequence comparision - to try to "intelligently" detect changes
+                // https://perl.plover.com/diff/Manual.html
+                var lcsComparisonResult = LcsComparer.Compare(a1hash, a2hash);
+                LcsToJson(a1, a2, path, diffs, lcsComparisonResult);
+            }
+        }
+
+        private void OrdinalCompare(string[] a1, string[] a2, string path, List<Diff> diffs)
+        {
+            int minLen = Math.Min(a1.Length, a2.Length);
+
+            for (int i = 0; i < minLen; i++)
+                if (a1[i] != a2[i])
+                    diffs.Add(new Diff(DiffOperation.Replace, $"{path}[{i}]", a2[i], a1[i]));
+
+            if (a1.Length > minLen)
+                for (int i = minLen; i < a1.Length; i++)
+                    diffs.Add(new Diff(DiffOperation.Remove, $"{path}[{i}]", a1[i]));
+
+            if (a2.Length > minLen)
+                for (int i = minLen; i < a2.Length; i++)
+                    diffs.Add(new Diff(DiffOperation.Add, $"{path}[{i}]", a2[i]));
         }
 
         private void LcsToJson(JArray a1, JArray a2, string path, List<Diff> diffs, LcsComparisonResult lcsComparisonResult)
@@ -115,11 +148,6 @@ namespace DBDiffer.Json
             });
         }
 
-        private void AppendValueChanges(JToken a, JValue b, string path, List<Diff> diffs)
-        {
-            if (a.Type == JTokenType.Object || !((JValue)a).Equals(b))
-                diffs.Add(new Diff(DiffOperation.Replace, path, b.Value, ((JValue)a).Value));
-        }
 
         private class FieldMap
         {
