@@ -40,10 +40,7 @@ namespace DBDiffer.DiffResults
                 Record = PreviousDB.Storage[x.Key]
             });
 
-            _results = new List<WoWToolsDiff>(diffs.Count + added.Count() + removed.Count());
-            _results.AddRange(added);
-            _results.AddRange(removed);
-            _results.AddRange(modified);
+            _results = added.Concat(removed).Concat(modified).ToList();
         }
 
         public void Save(string path, Formatting formatting = Formatting.None)

@@ -25,21 +25,21 @@ namespace DBDiffer.Helpers.Converters
             // write the db record
             writer.WritePropertyName("row");
             writer.WriteStartObject();
-            foreach (var x in obj)
+            foreach (var prop in obj)
             {
-                if (x.Value.Type == JTokenType.Array)
+                if (prop.Value.Type == JTokenType.Array)
                 {
-                    var array = x.Value as JArray;
+                    var array = prop.Value as JArray;
                     for (int i = 0; i < array.Count; i++)
                     {
-                        writer.WritePropertyName($"{x.Key}[{i}]");
+                        writer.WritePropertyName($"{prop.Key}[{i}]");
                         writer.WriteValue(array[i]);
                     }
                 }
                 else
                 {
-                    writer.WritePropertyName(x.Key);
-                    writer.WriteValue(x.Value);
+                    writer.WritePropertyName(prop.Key);
+                    writer.WriteValue(prop.Value);
                 }
             }
             writer.WriteEndObject();
