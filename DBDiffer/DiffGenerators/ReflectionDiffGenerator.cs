@@ -130,7 +130,7 @@ namespace DBDiffer.DiffGenerators
         /// <param name="diffs"></param>
         private void AppendArrayTypeChanges(object a, object b, bool isArrayA, string path, List<Diff> diffs)
         {
-            if (isArrayA)
+            if (!isArrayA)
             {
                 diffs.Add(new Diff(DiffOperation.Removed, path, _prevDB.GetFieldValue(a, path)));
                 Array array = _curDB.GetArrayFieldValue(b, path);
