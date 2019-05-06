@@ -28,6 +28,9 @@ namespace DBDiffer
 
         public int GetRecordHash(int i) => _hashCode.GetHashCode(Storage[i]);
 
+
         public string GetFieldValue(object o, string prop) => Fields[prop].GetValue(o).ToString();
+
+        public Array GetArrayFieldValue(object o, string prop) => Fields[prop].GetValue(o) as Array;
     }
 }

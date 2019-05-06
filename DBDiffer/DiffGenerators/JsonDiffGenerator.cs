@@ -42,9 +42,9 @@ namespace DBDiffer.DiffGenerators
             foreach (var prop in _fieldMap.CommonFields)
                 AppendChanges(otoken[prop], ntoken[prop], prop, diffs);
             foreach (var prop in _fieldMap.AddedFields)
-                diffs.Add(new Diff(DiffOperation.Add, prop, ntoken[prop]));
+                diffs.Add(new Diff(DiffOperation.Added, prop, ntoken[prop]));
             foreach (var prop in _fieldMap.RemovedFields)
-                diffs.Add(new Diff(DiffOperation.Remove, prop, otoken[prop]));
+                diffs.Add(new Diff(DiffOperation.Removed, prop, otoken[prop]));
 
             return diffs;
         }
@@ -58,11 +58,11 @@ namespace DBDiffer.DiffGenerators
             else if (a is JValue aval && b is JValue bval)
             {
                 if (aval.Type == JTokenType.Object || !aval.Equals(bval))
-                    diffs.Add(new Diff(DiffOperation.Replace, path, bval.Value, aval.Value));
+                    diffs.Add(new Diff(DiffOperation.Replaced, path, bval.Value, aval.Value));
             }
             else
             {
-                diffs.Add(new Diff(DiffOperation.Replace, path, b, a));
+                diffs.Add(new Diff(DiffOperation.Replaced, path, b, a));
             }
         }
 
@@ -92,15 +92,15 @@ namespace DBDiffer.DiffGenerators
 
             for (int i = 0; i < minLen; i++)
                 if (a1[i] != a2[i])
-                    diffs.Add(new Diff(DiffOperation.Replace, $"{path}[{i}]", a2[i], a1[i]));
+                    diffs.Add(new Diff(DiffOperation.Replaced, $"{path}[{i}]", a2[i], a1[i]));
 
             if (a1.Length > minLen)
                 for (int i = minLen; i < a1.Length; i++)
-                    diffs.Add(new Diff(DiffOperation.Remove, $"{path}[{i}]", a1[i]));
+                    diffs.Add(new Diff(DiffOperation.Removed, $"{path}[{i}]", a1[i]));
 
             if (a2.Length > minLen)
                 for (int i = minLen; i < a2.Length; i++)
-                    diffs.Add(new Diff(DiffOperation.Add, $"{path}[{i}]", a2[i]));
+                    diffs.Add(new Diff(DiffOperation.Added, $"{path}[{i}]", a2[i]));
         }
 
         private void LcsToJson(JArray a1, JArray a2, string path, List<Diff> diffs, LcsComparisonResult lcsComparisonResult)
@@ -115,22 +115,22 @@ namespace DBDiffer.DiffGenerators
                     var lastDiff = diffs.Count > 0 ? diffs[diffs.Count - 1] : null;
                     var pathToPreviousIndex = $"{path}[{j + offset - 1}]";
 
-                    if (lastDiff != null && lastDiff.Operation == DiffOperation.Add && lastDiff.Property == pathToPreviousIndex)
+                    if (lastDiff != null && lastDiff.Operation == DiffOperation.Added && lastDiff.Property == pathToPreviousIndex)
                     {
                         // Coalesce adjacent remove + add into replace
-                        lastDiff.Operation = DiffOperation.Replace;
+                        lastDiff.Operation = DiffOperation.Replaced;
                         lastDiff.PreviousValue = ((JValue)a1[j + offset - 1]).Value;
                     }
                     else
                     {
-                        diffs.Add(new Diff(DiffOperation.Remove, currentPathSegment));
+                        diffs.Add(new Diff(DiffOperation.Removed, currentPathSegment));
                     }
 
                     offset -= 1;
                 }
                 else if (lcsOperation == LcsOperation.Add)
                 {
-                    diffs.Add(new Diff(DiffOperation.Add, currentPathSegment, a2[i]));
+                    diffs.Add(new Diff(DiffOperation.Added, currentPathSegment, a2[i]));
                     offset += 1;
                 }
                 else if (j < a1.Count && i < a2.Count)
