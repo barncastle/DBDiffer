@@ -49,7 +49,7 @@ namespace DBDiffer.DiffGenerators
             // old name fields are marked as removed
             foreach (var prop in _fieldMap.RemovedFields)
             {
-                if (_curDB.Fields[prop].FieldType.IsArray)
+                if (_prevDB.Fields[prop].FieldType.IsArray)
                     AppendArrayChanges(_prevDB.GetArrayFieldValue(a, prop), prop, DiffOperation.Removed, diffs);
                 else
                     diffs.Add(new Diff(DiffOperation.Removed, prop, _prevDB.GetFieldValue(a, prop)));
