@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace DBDiffer.DiffGenerators
 {
-    class FieldMap
+    internal class FieldMap
     {
         public string[] CommonFields;
         public string[] AddedFields;
