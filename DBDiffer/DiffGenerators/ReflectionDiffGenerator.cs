@@ -135,7 +135,7 @@ namespace DBDiffer.DiffGenerators
                 diffs.Add(new Diff(DiffOperation.Removed, path, _prevDB.GetFieldValue(a, path)));
                 Array array = _curDB.GetArrayFieldValue(b, path);
                 AppendArrayChanges(array, path, DiffOperation.Added, diffs);
-            }                
+            }
             else
             {
                 diffs.Add(new Diff(DiffOperation.Added, path, _curDB.GetFieldValue(b, path)));
