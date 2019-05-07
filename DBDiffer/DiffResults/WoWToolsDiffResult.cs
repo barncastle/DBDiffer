@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -52,6 +53,12 @@ namespace DBDiffer.DiffResults
         public string ToJSONString(Formatting formatting = Formatting.None)
         {
             return JsonConvert.SerializeObject(this, formatting, _converter);
+        }
+
+        public string ToJSONString(int skip, int take, Formatting formatting = Formatting.None)
+        {
+            var eles = this.Skip(Math.Max(skip, 0)).Take(take <= 0 ? Count : 0);
+            return JsonConvert.SerializeObject(eles, formatting, _converter);
         }
 
         #region Interface
