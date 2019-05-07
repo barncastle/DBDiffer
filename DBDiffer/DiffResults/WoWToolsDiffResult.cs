@@ -57,7 +57,7 @@ namespace DBDiffer.DiffResults
 
         public string ToJSONString(int skip, int take, Formatting formatting = Formatting.None)
         {
-            var eles = this.Skip(Math.Max(skip, 0)).Take(take <= 0 ? Count : 0);
+            var eles = this.Skip(Math.Max(skip, 0)).Take(take <= 0 ? Count : take);
             return JsonConvert.SerializeObject(eles, formatting, _converter);
         }
 
