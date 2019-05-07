@@ -37,7 +37,7 @@ namespace DBDiffer.DiffResults
             var modified = diffs.Select(x => new WoWToolsDiff
             {
                 Diffs = x.Value,
-                Operation = DiffOperation.Modified,
+                Operation = DiffOperation.Replaced,
                 Record = PreviousDB.Storage[x.Key]
             });
 
