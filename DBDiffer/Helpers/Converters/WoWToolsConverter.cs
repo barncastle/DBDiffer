@@ -36,6 +36,15 @@ namespace DBDiffer.Helpers.Converters
                         writer.WriteValue(array[i]);
                     }
                 }
+                else if (prop.Value.Type == JTokenType.Bytes)
+                {
+                    var array = prop.Value.Value<byte[]>();
+                    for (int i = 0; i < array.Length; i++)
+                    {
+                        writer.WritePropertyName($"{prop.Key}[{i}]");
+                        writer.WriteValue(array[i]);
+                    }
+                }
                 else
                 {
                     writer.WritePropertyName(prop.Key);

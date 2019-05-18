@@ -14,11 +14,11 @@ namespace DBDiffer.DiffResults
     public sealed class WoWToolsDiffResult : IDiffResult, IReadOnlyCollection<WoWToolsDiff>
     {
         private readonly List<WoWToolsDiff> _results;
-        private readonly JsonConverter[] _converters;
+        private readonly WoWToolsConverter _converter;
 
         internal WoWToolsDiffResult(DBInfo PreviousDB, DBInfo CurrentDB, IDictionary<int, List<Diff>> diffs)
         {
-            _converters = new JsonConverter[] { new WoWToolsConverter(), new ByteArrayConverter() };
+            _converter = new WoWToolsConverter();
 
             var intersection = PreviousDB.Keys.Intersect(CurrentDB.Keys);
 
@@ -47,14 +47,14 @@ namespace DBDiffer.DiffResults
         public void Save(string path, Formatting formatting = Formatting.None)
         {
             using (var fs = File.CreateText(path))
-                fs.Write(JsonConvert.SerializeObject(this, formatting, _converters));
+                fs.Write(JsonConvert.SerializeObject(this, formatting, _converter));
         }
 
         public string ToJSONString(Formatting formatting = Formatting.None)
         {
             var result = new { data = this };
 
-            return JsonConvert.SerializeObject(result, formatting, _converters);
+            return JsonConvert.SerializeObject(result, formatting, _converter);
         }
 
         public string ToJSONString(int skip, int take, Formatting formatting = Formatting.None)
@@ -62,7 +62,7 @@ namespace DBDiffer.DiffResults
             var eles = this.Skip(Math.Max(skip, 0)).Take(take <= 0 ? Count : take);
             var result = new { data = eles };
 
-            return JsonConvert.SerializeObject(eles, formatting, _converters);
+            return JsonConvert.SerializeObject(eles, formatting, _converter);
         }
 
         #region Interface
