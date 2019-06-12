@@ -20,7 +20,7 @@ namespace DBDiffer
         public DBInfo(IDictionary dictionary)
         {
             Storage = dictionary;
-            ValueType = dictionary.GetType().GetGenericArguments()[0];
+            ValueType = dictionary.GetType().GetGenericArguments().Last();
             Fields = ValueType.GetFields().OrderBy(x => x.Name).ToDictionary(x => x.Name, x => x);
 
             _binders = Fields.ToDictionary(x => x.Key, x => new FakeBinder(x.Key));
